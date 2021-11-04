@@ -42,20 +42,24 @@ const resolver = {
             };
         },
         addUser: async (parent, args) => {
-            const user = await User.create({args});
+            console.log('args',args);
+            const user = await User.create(args);
             const token = signToken(user);
+            
             return {
+                
                 token,
                 user
             };
         },
         saveBook: async (parent, args, context) => {
+            console.log('args',args);
             if (context.user) {
                 const updatedUser = await User.findOneAndUpdate({
-                    _id: user._id
+                    _id: context.user._id
                 }, {
-                    $addToSet: {
-                        savedBooks: body
+                    $push: {
+                        savedBooks: args
                     }
                 }, {
                     new: true,
