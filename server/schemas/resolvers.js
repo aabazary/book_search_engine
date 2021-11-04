@@ -19,7 +19,7 @@ const resolver = {
 
     },
     Mutation: {
-        login: async (parent, args, { email, password}) => {
+        login: async (parent, { email, password}) => {
             const user = await User.findOne({
                 email
             });
@@ -54,6 +54,7 @@ const resolver = {
         },
         saveBook: async (parent, args, context) => {
             console.log('args',args);
+            console.log("context",context.user)
             if (context.user) {
                 const updatedUser = await User.findOneAndUpdate({
                     _id: context.user._id
