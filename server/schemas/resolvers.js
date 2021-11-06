@@ -10,15 +10,19 @@ const {
 
 const resolver = {
     Query: {
+        //
         me: async (parent, args, context) => {
             if (context.user) {
-              return User.findOne({ _id: context.user._id });
+              const userInfo = await User.findOne({ _id: context.user._id });
+
+            return userInfo;
             }
             throw new AuthenticationError('You need to be logged in!');
           },
 
     },
     Mutation: {
+        // function to log in
         login: async (parent, { email, password}) => {
             const user = await User.findOne({
                 email
@@ -41,9 +45,10 @@ const resolver = {
                 user
             };
         },
-        addUser: async (parent, args) => {
-            console.log('args',args);
-            const user = await User.create(args);
+        // function to create a new user
+        addUser: async (parent, {username,email,password}) => {
+            // console.log('args',args);
+            const user = await User.create({username,email,password});
             const token = signToken(user);
             
             return {
@@ -52,38 +57,33 @@ const resolver = {
                 user
             };
         },
+        //had to do both the saveBook and deleteBook without the await in order to get them both to work
+        //function to save a book to the database
         saveBook: async (parent, args, context) => {
-            console.log('args',args);
-            console.log("context",context.user)
+            // console.log ('context',context.user)
             if (context.user) {
-                const updatedUser = await User.findOneAndUpdate({
-                    _id: context.user._id
-                }, {
-                    $push: {
-                        savedBooks: args
-                    }
-                }, {
-                    new: true,
-                    runValidators: true
-                });
-                return updatedUser;
-            }
-            throw new AuthenticationError('You must be logged in to save a book');
-        },
-        removeBook: async (parent, args, context) => {
+              return User.findByIdAndUpdate(
+                { _id: context.user._id },
+                { $addToSet: { savedBooks: args } },
+                { new: true, runValidators: true  }
+              );
+      
+           
+       
+              }
+            throw new AuthenticationError('You need to be logged in!');
+          },
+            //function to delete a book from the database
+        removeBook: async (parent, {bookId}, context) => {
             if (context.user) {
-                const updatedUser = await User.findOneAndUpdate(
-                    { _id: user._id },
-                    { $pull: { savedBooks: {args } } },
+                return User.findOneAndUpdate(
+                    { _id: context.user._id },
+                    { $pull: { savedBooks: {bookId } } },
                     { new: true }
                   );
-                  if (!updatedUser) {
-                    return updatedUser;
-
             }
             throw new AuthenticationError('You must be logged in to delete a book');
     }
-}
 }
 };
 
